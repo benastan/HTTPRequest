@@ -25,10 +25,11 @@ Nice!
 HTTPRequest is also great for making calls to 3rd-party APIs. Here's a Geocoding request to Google Maps:
 
 	$http = new HTTPRequest('maps.googleapis.com', '/maps/api/geocode/json');
-	$http -> setQueryParams(array(
+	$params = array(
 	  'address' => 'The Moon',
 	  'sensor' => false
-	));
+	);
+	$http -> setQueryParams($params);
 	$http -> execute();
 	echo $http -> getResponseText();
 	$http -> close();
@@ -50,12 +51,28 @@ In this case, the constructor took a second parameter (the uri) in addition to f
 
 	public function __construct($host = null, $uri = '/', $port = 80, $useCurl = null, $timeout = 10)
 
-## If you hate readability ##
+## For fans of chaining ##
 
-If you hate readability, you can always write it like so:
+Many of the HTTPRequest class' methods return the instance itself, enabling chaining (if you please).
 
-	$params = array('address'=>'The Moon','sensor'=>false);
 	$http = new HTTPRequest('maps.googleapis.com', '/maps/api/geocode/json');
+	$params = array('address'=>'The Moon','sensor'=>false);
 	echo $http -> setQueryParams($params) -> execute()  -> getResponseText();
 	$http -> close();
+
+## HTTPS/SSL Support ##
+
+HTTPRequest also supports HTTPS/SSL for both cURL and fsockopen. For example, you can make calls to the Trello API in a snap:
+
+	$http = new HTTPRequest('api.trello.com', '/1/boards/4d5ea62fd76aa1136000000c', 443);
+	$params = array(
+		'key' => '[YOUR_DEVELOPER_KEY]'
+	);
+	$http -> setQueryParams($params);
+	$http -> execute();
+	echo $http -> getResponseText();
+	$http -> close();
 	
+We get back some info about the Trello development board:
+
+	{"id":"4d5ea62fd76aa1136000000c","name":"Trello Development","desc":"Trello board used by the Trello team to track work on Trello.  How meta!\n\nThe development of the Trello API is being tracked at https://trello.com/api\n\nThe development of Trello Mobile applications is being tracked at https://trello.com/mobile","closed":false,"idOrganization":"4e1452614e4b8698470000e0","url":"https://trello.com/board/trello-development/4d5ea62fd76aa1136000000c","prefs":{"voting":"public","permissionLevel":"public","invitations":"members","comments":"public"}}
