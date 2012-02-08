@@ -59,6 +59,7 @@ class HTTPRequest {
 		return $this;
 	}
 	
+	// @TODO: Deprecate setGetData in preference of setQueryParams
 	public function setGetData($get) {
 		$this -> query = $get;
 		return $this;
@@ -126,6 +127,7 @@ class HTTPRequest {
 		$type = $this -> type;
 		$port = $this -> port;
 		$data = property_exists($this, 'data') ? HTTPRequest::param($this -> data) : false;
+		$timeout = $this -> timeout;
 
 		// Initiate cURL.
 		$ch = curl_init();
@@ -186,28 +188,32 @@ class HTTPRequest {
 
 	protected function fsockget_execute() {
 		$uri = $this -> uri;
+		$host = $this -> host;
+		$port = $this -> port;
 		$type = $this -> type;
 		$HTTPVersion = $this -> HTTPVersion;
 		$data = property_exists($this, 'data') ? $this -> data : null;
-		$host = $this -> host;
-		$port = $this -> port;
-		$timeout = $this -> timeout;
+		$crlf = "\r\n";
+		
 		$rsp = '';
+		
+		// Deal with the data first.
 		if ($data && $type === 'POST') {
 			$data = $this -> param($data);
 		} else if ($data && $type === 'GET') {
 			$get_data = $data;
-			$data = "\r\n";
+			$data = $crlf;
 		} else {
-			$data = "\r\n";
+			$data = $crlf;
 		}
+		// Then add
 		if ($type === 'POST') {
 			$this -> setHeader('Content-Type', 'application/x-www-form-urlencoded');
 			$this -> setHeader('Content-Length', strlen($data));
-			$get_data = $this -> query ? HTTPRequest::param($this -> query) : false;
+			$get_data = property_exists($this, 'query') && $this -> query ? HTTPRequest::param($this -> query) : false;
 		} else {
 			$this -> setHeader('Content-Type', 'text/plain');
-			$this -> setHeader('Content-Length', strlen("\r\n"));
+			$this -> setHeader('Content-Length', strlen($crlf);
 		}
 		if ($type === 'GET') {
 			if (isset($get_data)) {
@@ -217,7 +223,6 @@ class HTTPRequest {
 			}
 		}
 		$headers = $this -> headers;
-		$crlf = "\r\n";
 		$req = '';
 		$req .= $type.' '.$uri.(isset($get_data) ? '?'.$get_data : '').' HTTP/'.$HTTPVersion.$crlf;
 		$req .= "Host: ".$host.$crlf;
@@ -230,28 +235,49 @@ class HTTPRequest {
 		} else {
 			$req .= $crlf;
 		}
+		
+		// Construct hostname.
 		$fsock_host = ($port == 443 ? 'ssl://' : '').$host;
+		
+		// Open socket.
 		$httpreq = @fsockopen($fsock_host, $port, $errno, $errstr, 30);
+		
+		// Handle an error.
 		if (!$httpreq) {
 			echo 'error';
 			$this -> error = $errno.': '.$errstr;
 			return false;
 		}
+		
+		// Send the request.
 		fputs($httpreq, $req);
+		
+		// Receive the response.
 		while ($line = fgets($httpreq)) {
 			$rsp .= $line;
 		}
-		$this -> response = $rsp;
+		
+		
+		// Extract the headers and the responseText.
 		list($headers, $responseText) = explode($crlf.$crlf, $rsp);
+		
+		// Store the finalized response.
+		$this -> response = $rsp;
 		$this -> responseText = $responseText;
-		$headers = explode($crlf, $headers);
 		$this -> status = array_shift($headers);
+		
+		// Store the response headers.
+		$headers = explode($crlf, $headers);
 		$this -> responseHeaders = array();
 		foreach ($headers as $header) {
 			list($key, $val) = explode(': ', $header);
 			$this -> responseHeaders[$key] = $val;
 		}
+		
+		// Mark as executed.
 		$this -> executed = true;
+		
+		// Store the resource so we can close it later.
 		$this -> fsock = $httpreq;
 	}
 
