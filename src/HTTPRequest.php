@@ -18,7 +18,7 @@ class HTTPRequest {
 	protected $fsock;
 	protected $curl;
 	
-	public function __construct($host = null, $port = 80, $uri = '/', $useCurl = null, $timeout = 10) {
+	public function __construct($host = null, $uri = '/', $port = 80, $useCurl = null, $timeout = 10) {
 		if (!$host) {
 			return false;
 		}
@@ -36,30 +36,37 @@ class HTTPRequest {
 		$this -> setHeader('Accept-Charset', 'ISO-8859-1,utf-8;q=0.7,*;q=0.7');
 		$this -> setHeader('User-Agent', 'Mozilla/5.0 Firefox/3.6.12');
 		$this -> setHeader('Connection', 'close');
+		return $this;
 	}
 
 	public function setHost($host) {
 		$this -> host = $host;
+		return $this;
 	}
 
 	public function setRequestURI($uri) {
 		$this -> uri = $uri;
+		return $this;
 	}
 	
 	public function setPort($port) {
 		$this -> port = $port;
+		return $this;
 	}
 
 	public function setTimeout($timeout) {
 		$this -> timeout = $timeout;
+		return $this;
 	}
 	
 	public function setGetData($get) {
 		$this -> query = $get;
+		return $this;
 	}
 
 	public function setQueryParams($get) {
 		$this -> query = $get;
+		return $this;
 	}
 	
 	public function setUseCurl($use) {
@@ -68,16 +75,19 @@ class HTTPRequest {
 		} else {
 			$this -> useCurl = false;
 		}
+		return $this;
 	}
 
 	public function setType($type) {
 		if (in_array($type, array('POST', 'GET', 'PUT', 'DELETE'))) {
 			$this -> type = $type;
 		}
+		return $this;
 	}
 
 	public function setData($data) {
 		$this -> data = $data;
+		return $this;
 	}
 
 	public function param($data) {
@@ -93,10 +103,12 @@ class HTTPRequest {
 
 	public function setUrl($url) {
 		$this -> url = $url;
+		return $this;
 	}
 	
 	public function setHeader($header, $content) {
 		$this -> headers[$header] = $content;
+		return $this;
 	}
 	
 	public function execute() {
@@ -105,6 +117,7 @@ class HTTPRequest {
 		} else {
 			$this -> fsockget_execute();
 		}
+		return $this;
 	}
 
 	protected function curl_execute() {
