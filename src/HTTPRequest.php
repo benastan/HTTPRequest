@@ -213,7 +213,7 @@ class HTTPRequest {
 			$get_data = property_exists($this, 'query') && $this -> query ? HTTPRequest::param($this -> query) : false;
 		} else {
 			$this -> setHeader('Content-Type', 'text/plain');
-			$this -> setHeader('Content-Length', strlen($crlf);
+			$this -> setHeader('Content-Length', strlen($crlf));
 		}
 		if ($type === 'GET') {
 			if (isset($get_data)) {
