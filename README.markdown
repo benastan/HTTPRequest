@@ -20,7 +20,7 @@ Echoes:
 
 Nice!
 
-## Basic Trello API Request ##
+## Basic Google Maps Geocoding API Request ##
 
 HTTPRequest is also great for making calls to 3rd-party APIs. Here's a Geocoding request to Google Maps:
 
