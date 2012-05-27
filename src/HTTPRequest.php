@@ -211,7 +211,6 @@ class HTTPRequest {
 		// Add any authentication to the request.
 		// Currently supports only HTTP Basic Auth.
 		if ($this -> useBasicAuth === true) {
-			var_dump('sasdg');
 			curl_setopt($ch, CURLOPT_USERPWD, $this -> authUsername.':'.$this -> authPassword);	
 			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 		}
@@ -292,7 +291,6 @@ class HTTPRequest {
 		
 		// Handle an error.
 		if (!$httpreq) {
-			echo 'error';
 			$this -> error = $errno.': '.$errstr;
 			return false;
 		}
