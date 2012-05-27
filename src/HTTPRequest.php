@@ -3,6 +3,7 @@
 class HTTPRequest {
 	protected $hasCurl;
 	protected $useCurl;
+	protected $useBasicAuth;
 	protected $HTTPVersion;
 	protected $host;
 	protected $port;
@@ -17,6 +18,9 @@ class HTTPRequest {
 	protected $executed;
 	protected $fsock;
 	protected $curl;
+	protected $additionalCurlOpts;
+	protected $authUsername;
+	protected $authPassword;
 	
 	public function __construct($host = null, $uri = '/', $port = 80, $useCurl = null, $timeout = 10) {
 		if (!$host) {
@@ -111,7 +115,35 @@ class HTTPRequest {
 		$this -> headers[$header] = $content;
 		return $this;
 	}
-	
+
+	public function setAdditionalCurlOpt($option, $value) {
+		if (is_array($option)) {
+			foreach ($option as $opt => $val) {
+				$this -> setAdditionalCurlOpt($opt, $val);
+			}
+		} else {
+			$this -> additionalCurlOpts[$option] = $value;
+		}
+	}
+
+	public function setUseBasicAuth($set, $username = null, $password = null) {
+		$this -> useBasicAuth = $set;
+		if ($username) {
+			$this -> setAuthUsername($username);
+		}
+		if ($password) {
+			$this -> setAuthPassword($password);
+		}
+	}
+
+	public function setAuthUsername($username = null) {
+		$this -> authUsername = $username;
+	}
+
+	public function setAuthPassword($password = null) {
+		$this -> authPassword = $password;
+	}	
+
 	public function execute() {
 		if ($this -> useCurl) {
 			$this -> curl_execute();
@@ -166,10 +198,23 @@ class HTTPRequest {
 			$protocol = 'http';
 		}
 
+		if (!empty($this -> additonalCurlOpts)) {
+			foreach ($this -> additionalCurlOpts as $option => $value) {
+				curl_setopt($ch, $option, $value);
+			}
+		}
 		// Build and set URL.
 		$url = $protocol.'://'.$host.$uri.$query;
 		curl_setopt($ch, CURLOPT_URL, $url); 
 		curl_setopt($ch, CURLOPT_PORT, $port);
+
+		// Add any authentication to the request.
+		// Currently supports only HTTP Basic Auth.
+		if ($this -> useBasicAuth === true) {
+			var_dump('sasdg');
+			curl_setopt($ch, CURLOPT_USERPWD, $this -> authUsername.':'.$this -> authPassword);	
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		}
 
 		// Execute!
 		$rsp = curl_exec($ch);
@@ -221,6 +266,9 @@ class HTTPRequest {
 			} else if ($this -> query) {
 				$get_data = HTTPRequest::param($this -> query);
 			}
+		}
+		if ($this -> useBasicAuth === true) {
+			$this -> setHeader('Authorization', 'Basic '.base64_encode($this -> authUsername.':'.$this -> authPassword));
 		}
 		$headers = $this -> headers;
 		$req = '';
